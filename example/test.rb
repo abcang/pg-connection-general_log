@@ -1,6 +1,5 @@
 require 'sinatra'
 require 'pg'
-require 'pg/connection/general_log'
 
 helpers do
   def db
@@ -8,6 +7,13 @@ helpers do
       host: '127.0.0.1',
       user: 'postgres',
       dbname: 'pg_connection_general_log_test'
+    )
+  end
+
+  def pg
+    PG.connect(
+      host: '127.0.0.1',
+      user: 'postgres'
     )
   end
 
@@ -37,12 +43,21 @@ get '/' do
   db.prepare('select', 'SELECT * FROM users WHERE name = $1')
   db.exec_prepared('select', ['bar'])
   db.exec_prepared('select', ['foo'])
+
+  'ok'
 end
 
 get '/init' do
+  pg.exec('DROP DATABASE IF EXISTS pg_connection_general_log_test')
+  pg.exec('CREATE DATABASE pg_connection_general_log_test')
+
   init
+
+  'init'
 end
 
-after do
-  db.general_log.writefile(req: request, backtrace: true)
+get '/down' do
+  pg.exec('DROP DATABASE IF EXISTS pg_connection_general_log_test')
+
+  'down'
 end

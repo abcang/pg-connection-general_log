@@ -1,7 +1,7 @@
 PG:Connection::GeneralLog
 ===
 
-[![Build Status](https://travis-ci.org/abcang/pg-connection-general_log.svg?branch=v0.0.1)](https://travis-ci.org/abcang/pg-connection-general_log)
+[![Build Status](https://travis-ci.org/abcang/pg-connection-general_log.svg?branch=master)](https://travis-ci.org/abcang/pg-connection-general_log)
 
 A monkey patch for pg.
 Stock all general logs.
@@ -16,7 +16,7 @@ require "pg/connection/general_log"
 client = PG::Connection.new(config)
 client.query("SELECT * FROM users LIMIT 1")
 
-p client.general_log #=>
+p PG::Connection::GeneralLog.general_log #=>
 # [
 #   #<struct PG::Connection::GeneralLog::Log
 #     sql="SELECT * FROM users LIMIT 1",
@@ -29,6 +29,16 @@ p client.general_log #=>
 ## Examples
 
 ### sinatra
+
+config.ru:
+```ruby
+require_relative './test'
+
+require 'pg/connection/general_log'
+
+use PG::Connection::GeneralLog::Middleware, enabled: true, backtrace: true, path: '/tmp/general_log'
+run Sinatra::Application
+```
 
 test.rb:
 ```ruby
@@ -50,13 +60,9 @@ get '/' do
   db.exec_prepared('select', ['bar'])
   db.exec_prepared('select', ['foo'])
 end
-
-after do
-  db.general_log.writefile(path: '/tmp/sql.log', req: request, backtrace: true)
-end
 ```
 
-/tmp/sql.log:
+/tmp/general_log/2017-11-19.log:
 ```
 REQUEST GET	/	4
 SQL	(0000.89ms)	SELECT * FROM users WHERE name = 'hoge'	[]	/path/to/test.rb:12:in `block in <main>'
@@ -77,6 +83,18 @@ And then execute:
 
     $ bundle
 
+
+## Test
+
+```ruby
+$ bundle exec rake
+```
+
+## example server
+
+```ruby
+$ bundle exec rake example
+```
 
 ## License
 

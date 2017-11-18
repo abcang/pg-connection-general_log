@@ -1,11 +1,10 @@
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-File.read('lib/pg/connection/general_log/version.rb') =~ /.*VERSION\s*=\s*['"](.*?)['"]\s.*/
-version = Regexp.last_match(1)
+require 'pg/connection/general_log/version'
 
 Gem::Specification.new do |spec|
   spec.name          = 'pg-connection-general_log'
-  spec.version       = version
+  spec.version       = PG::Connection::GeneralLog::VERSION
   spec.authors       = ['abcang']
   spec.email         = ['abcang1015@gmail.com']
 
@@ -21,4 +20,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'bundler', '~> 1.15'
   spec.add_development_dependency 'rake', '~> 12.2'
   spec.add_development_dependency 'rgot'
+  spec.add_development_dependency 'sinatra'
 end

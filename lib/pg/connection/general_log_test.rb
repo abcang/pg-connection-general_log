@@ -2,6 +2,7 @@ require 'pg/connection/general_log'
 
 module PGConnectionGeneralLogTest
   def test_main(m)
+    PG::Connection::GeneralLog.prepend_module
     client = PG.connect(
       host: '127.0.0.1',
       user: 'postgres'
@@ -14,6 +15,7 @@ module PGConnectionGeneralLogTest
       user: 'postgres',
       dbname: 'pg_connection_general_log_test'
     )
+    PG::Connection::GeneralLog.general_log.clear
     exit m.run
 
     client.exec('DROP DATABASE IF EXISTS pg_connection_general_log_test')
@@ -35,15 +37,15 @@ module PGConnectionGeneralLogTest
                     ('bar', 'barr')
       ;
     SQL
-    @client.general_log.clear
+    PG::Connection::GeneralLog.general_log.clear
   end
 
   def test_init(t)
-    unless @client.general_log.is_a?(Array)
-      t.error("initial value expect Array class got #{@client.general_log.class}")
+    unless PG::Connection::GeneralLog.general_log.is_a?(Array)
+      t.error("initial value expect Array class got #{PG::Connection::GeneralLog.general_log.class}")
     end
-    unless @client.general_log.empty?
-      t.error("initial value expect [] got #{@client.general_log}")
+    unless PG::Connection::GeneralLog.general_log.empty?
+      t.error("initial value expect [] got #{PG::Connection::GeneralLog.general_log}")
     end
   end
 
@@ -53,21 +55,21 @@ module PGConnectionGeneralLogTest
     @client.exec("SELECT * FROM users WHERE name = '#{'bar'}'")
     @client.exec("SELECT * FROM users WHERE name = '#{'foo'}'")
 
-    if @client.general_log.length != 3
-      t.error("expect log length 3 got #{@client.general_log.length}")
+    if PG::Connection::GeneralLog.general_log.length != 3
+      t.error("expect log length 3 got #{PG::Connection::GeneralLog.general_log.length}")
     end
-    if @client.general_log.any?{|log| !log.is_a?(PG::Connection::GeneralLog::Log)}
-      t.error("expect all collection item is instance of PG::Connection::GeneralLog::Log got #{@client.general_log.map(&:class).uniq}")
+    if PG::Connection::GeneralLog.general_log.any?{|log| !log.is_a?(PG::Connection::GeneralLog::Log)}
+      t.error("expect all collection item is instance of PG::Connection::GeneralLog::Log got #{PG::Connection::GeneralLog.general_log.map(&:class).uniq}")
     end
     expect = { 'id' => '1', 'name' => 'hoge', 'password' => 'cheap-pass' }
     if ret != expect
       t.error("expect exec output not change from #{expect} got #{ret}")
     end
-    unless @client.general_log.first.format =~ /^SQL\t\(\d+\.\d+ms\)\tSELECT \* FROM users WHERE name = 'hoge'\t\[\]$/
-      t.error("expect log format not correct got `#{@client.general_log.first.format}`")
+    unless PG::Connection::GeneralLog.general_log.first.format =~ /^SQL\t\(\d+\.\d+ms\)\tSELECT \* FROM users WHERE name = 'hoge'\t\[\]$/
+      t.error("expect log format not correct got `#{PG::Connection::GeneralLog.general_log.first.format}`")
     end
-    unless @client.general_log.first.format(true) =~ /^SQL\t\(\d+\.\d+ms\)\tSELECT \* FROM users WHERE name = 'hoge'\t\[\].+in `test_values'$/
-      t.error("expect log format not correct got `#{@client.general_log.first.format(true)}`")
+    unless PG::Connection::GeneralLog.general_log.first.format(true) =~ /^SQL\t\(\d+\.\d+ms\)\tSELECT \* FROM users WHERE name = 'hoge'\t\[\].+in `test_values'$/
+      t.error("expect log format not correct got `#{PG::Connection::GeneralLog.general_log.first.format(true)}`")
     end
   end
 
@@ -77,21 +79,21 @@ module PGConnectionGeneralLogTest
     @client.exec_params('SELECT * FROM users WHERE name = $1', ['bar'])
     @client.exec_params('SELECT * FROM users WHERE name = $1', ['foo'])
 
-    if @client.general_log.length != 3
-      t.error("expect log length 3 got #{@client.general_log.length}")
+    if PG::Connection::GeneralLog.general_log.length != 3
+      t.error("expect log length 3 got #{PG::Connection::GeneralLog.general_log.length}")
     end
-    if @client.general_log.any?{|log| !log.is_a?(PG::Connection::GeneralLog::Log)}
-      t.error("expect all collection item is instance of PG::Connection::GeneralLog::Log got #{@client.general_log.map(&:class).uniq}")
+    if PG::Connection::GeneralLog.general_log.any?{|log| !log.is_a?(PG::Connection::GeneralLog::Log)}
+      t.error("expect all collection item is instance of PG::Connection::GeneralLog::Log got #{PG::Connection::GeneralLog.general_log.map(&:class).uniq}")
     end
     expect = { 'id' => '1', 'name' => 'hoge', 'password' => 'cheap-pass' }
     if ret != expect
       t.error("expect exec output not change from #{expect} got #{ret}")
     end
-    unless @client.general_log.first.format =~ /^SQL\t\(\d+\.\d+ms\)\tSELECT \* FROM users WHERE name = \$1\t\["hoge"\]$/
-      t.error("expect log format not correct got `#{@client.general_log.first.format}`")
+    unless PG::Connection::GeneralLog.general_log.first.format =~ /^SQL\t\(\d+\.\d+ms\)\tSELECT \* FROM users WHERE name = \$1\t\["hoge"\]$/
+      t.error("expect log format not correct got `#{PG::Connection::GeneralLog.general_log.first.format}`")
     end
-    unless @client.general_log.first.format(true) =~ /^SQL\t\(\d+\.\d+ms\)\tSELECT \* FROM users WHERE name = \$1\t\["hoge"\].+in `test_params_values'$/
-      t.error("expect log format not correct got `#{@client.general_log.first.format(true)}`")
+    unless PG::Connection::GeneralLog.general_log.first.format(true) =~ /^SQL\t\(\d+\.\d+ms\)\tSELECT \* FROM users WHERE name = \$1\t\["hoge"\].+in `test_params_values'$/
+      t.error("expect log format not correct got `#{PG::Connection::GeneralLog.general_log.first.format(true)}`")
     end
   end
 
@@ -102,21 +104,21 @@ module PGConnectionGeneralLogTest
     @client.exec_prepared('select', ['bar'])
     @client.exec_prepared('select', ['foo'])
 
-    if @client.general_log.length != 3
-      t.error("expect log length 3 got #{@client.general_log.length}")
+    if PG::Connection::GeneralLog.general_log.length != 3
+      t.error("expect log length 3 got #{PG::Connection::GeneralLog.general_log.length}")
     end
-    if @client.general_log.any?{|log| !log.is_a?(PG::Connection::GeneralLog::Log)}
-      t.error("expect all collection item is instance of PG::Connection::GeneralLog::Log got #{@client.general_log.map(&:class).uniq}")
+    if PG::Connection::GeneralLog.general_log.any?{|log| !log.is_a?(PG::Connection::GeneralLog::Log)}
+      t.error("expect all collection item is instance of PG::Connection::GeneralLog::Log got #{PG::Connection::GeneralLog.general_log.map(&:class).uniq}")
     end
     expect = { 'id' => '1', 'name' => 'hoge', 'password' => 'cheap-pass' }
     if ret != expect
       t.error("expect exec output not change from #{expect} got #{ret}")
     end
-    unless @client.general_log.first.format =~ /^SQL\t\(\d+\.\d+ms\)\tSELECT \* FROM users WHERE name = \$1\t\["hoge"\]$/
-      t.error("expect log format not correct got `#{@client.general_log.first.format}`")
+    unless PG::Connection::GeneralLog.general_log.first.format =~ /^SQL\t\(\d+\.\d+ms\)\tSELECT \* FROM users WHERE name = \$1\t\["hoge"\]$/
+      t.error("expect log format not correct got `#{PG::Connection::GeneralLog.general_log.first.format}`")
     end
-    unless @client.general_log.first.format(true) =~ /^SQL\t\(\d+\.\d+ms\)\tSELECT \* FROM users WHERE name = \$1\t\["hoge"\].+in `test_prepare_values'$/
-      t.error("expect log format not correct got `#{@client.general_log.first.format(true)}`")
+    unless PG::Connection::GeneralLog.general_log.first.format(true) =~ /^SQL\t\(\d+\.\d+ms\)\tSELECT \* FROM users WHERE name = \$1\t\["hoge"\].+in `test_prepare_values'$/
+      t.error("expect log format not correct got `#{PG::Connection::GeneralLog.general_log.first.format(true)}`")
     end
   end
 
@@ -134,7 +136,7 @@ module PGConnectionGeneralLogTest
     @client.prepare('select2', 'SELECT * FROM users WHERE name = $1')
     @client.exec_prepared('select2', ['bar'])
     @client.exec_prepared('select2', ['foo'])
-    puts @client.general_log.map { |log| [log.sql, log.args.to_s, log.backtrace.find{|c| %r{/gems/} !~ c.to_s}.to_s.gsub(/.*?:/, '')].join(' ') }
+    puts PG::Connection::GeneralLog.general_log.map { |log| [log.sql, log.args.to_s, log.backtrace.find{|c| %r{/gems/} !~ c.to_s}.to_s.gsub(/.*?:/, '')].join(' ') }
     # Output:
     # SELECT * FROM users WHERE name = 'hoge' [] in `example_general_log'
     # SELECT * FROM users WHERE name = $1 ["hoge"] in `example_general_log'
