@@ -16,13 +16,17 @@ module PG
         end
 
         def call(env)
-          GeneralLog.general_log.clear if Middleware.enabled
+          if Middleware.enabled
+            request = Rack::Request.new env
+            request_id = request.uuid
+            Thread.current[:request_id] = request_id
+          end
           @app.call(env)
         ensure
           if Middleware.enabled
-            request = Rack::Request.new env
-            puts request.path
-            GeneralLog.general_log.writefile(request)
+            GeneralLog.general_log_with_request_id(request_id).writefile(request)
+            GeneralLog.delete_general_log(request_id)
+            Thread.current[:request_id] = nil
           end
         end
       end

@@ -12,7 +12,16 @@ module PG
     module GeneralLog
       class << self
         def general_log
-          Thread.current[:general_log] ||= Logger.new
+          Thread.current[:general_log] ||= {}
+          Thread.current[:general_log][Thread.current[:request_id]] ||= Logger.new
+        end
+
+        def general_log_with_request_id(request_id)
+          Thread.current.dig(:general_log, request_id)
+        end
+
+        def delete_general_log(request_id)
+          Thread.current[:general_log]&.delete(request_id)
         end
 
         def prepend_module
