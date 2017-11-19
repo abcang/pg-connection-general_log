@@ -17,7 +17,7 @@ module PG
         end
 
         def general_log_with_request_id(request_id)
-          Thread.current[:general_log]&.fetch(request_id)
+          Thread.current[:general_log]&.fetch(request_id, nil)
         end
 
         def delete_general_log(request_id)

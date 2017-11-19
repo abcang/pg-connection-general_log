@@ -122,6 +122,30 @@ module PGConnectionGeneralLogTest
     end
   end
 
+  def test_async_values(t)
+    db_init
+    ret = @client.async_exec("SELECT * FROM users WHERE name = '#{'hoge'}'").first
+    @client.async_exec("SELECT * FROM users WHERE name = '#{'bar'}'")
+    @client.async_exec("SELECT * FROM users WHERE name = '#{'foo'}'")
+
+    if PG::Connection::GeneralLog.general_log.length != 3
+      t.error("expect log length 3 got #{PG::Connection::GeneralLog.general_log.length}")
+    end
+    if PG::Connection::GeneralLog.general_log.any?{|log| !log.is_a?(PG::Connection::GeneralLog::Log)}
+      t.error("expect all collection item is instance of PG::Connection::GeneralLog::Log got #{PG::Connection::GeneralLog.general_log.map(&:class).uniq}")
+    end
+    expect = { 'id' => '1', 'name' => 'hoge', 'password' => 'cheap-pass' }
+    if ret != expect
+      t.error("expect exec output not change from #{expect} got #{ret}")
+    end
+    unless PG::Connection::GeneralLog.general_log.first.format =~ /^SQL\t\(\d+\.\d+ms\)\tSELECT \* FROM users WHERE name = 'hoge'\t\[\]$/
+      t.error("expect log format not correct got `#{PG::Connection::GeneralLog.general_log.first.format}`")
+    end
+    unless PG::Connection::GeneralLog.general_log.first.format(true) =~ /^SQL\t\(\d+\.\d+ms\)\tSELECT \* FROM users WHERE name = 'hoge'\t\[\].+in `test_async_values'$/
+      t.error("expect log format not correct got `#{PG::Connection::GeneralLog.general_log.first.format(true)}`")
+    end
+  end
+
   def test_log_class(t)
     if PG::Connection::GeneralLog::Log.members != %i[sql args backtrace time]
       t.error("expect PG::Connection::GeneralLog::Log.members is [:sql, :args, :backtrace, :time] got #{PG::Connection::GeneralLog::Log.members}")

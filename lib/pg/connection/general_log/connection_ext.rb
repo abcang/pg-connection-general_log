@@ -43,6 +43,16 @@ module PG
           GeneralLog.general_log.push(sql, params, caller_locations, time)
           ret
         end
+
+        def async_exec(*args)
+          sql, params = args
+          ret = nil
+          time = Benchmark.realtime do
+            ret = super
+          end
+          GeneralLog.general_log.push(sql, params || [], caller_locations, time)
+          ret
+        end
       end
     end
   end
