@@ -13,6 +13,8 @@ Inspired by [mysql2-client-general_log](https://github.com/ksss/mysql2-client-ge
 
 require "pg/connection/general_log"
 
+PG::Connection::GeneralLog.prepend_module
+
 client = PG::Connection.new(config)
 client.query("SELECT * FROM users LIMIT 1")
 
@@ -90,7 +92,7 @@ And then execute:
 $ bundle exec rake
 ```
 
-## example server
+## Example server
 
 ```ruby
 $ bundle exec rake example
