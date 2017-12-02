@@ -63,7 +63,7 @@ get '/' do
 end
 ```
 
-/tmp/general_log/2017-11-19.log:
+/tmp/general_log/2017-11-19.txt:
 ```
 REQUEST GET	/	4
 SQL	(0000.89ms)	SELECT * FROM users WHERE name = 'hoge'	[]	/path/to/test.rb:12:in `block in <main>'
