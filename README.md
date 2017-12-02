@@ -46,7 +46,6 @@ test.rb:
 ```ruby
 require 'sinatra'
 require 'pg'
-require "pg/connection/general_log"
 
 helpers do
   def db
